@@ -73,6 +73,7 @@ for(var c in result.seal)
   _tmp = parseInt(result.seal[c], 16);
   if(_tmp > _difficulty)
   {
+    console.log(result.seal, c, _tmp, _difficulty)
     console.error("[!] ERROR : Bad hash, difficulty not respected");
     process.exit(1);
   }

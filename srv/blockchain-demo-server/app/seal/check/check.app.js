@@ -35,14 +35,10 @@ function Check()
   */
   this.authenticityFlow = function(req, res)
   {
-    /*
-      TODO :
-      vérifier l'état de AUTHENTICITY.state
-      s'il est false, alors on utilse req.continue = false pour stopper le flux d'exécution , et on utilise
-        wf.httpUtil.dataError(req, res, "Error", "ERROR ICI", 500, "1.0");
-      pour renvoyer l'erreur contenue dans AUTHENTICITY.error
-    */
-
+    if (!AUTHENTICITY.state) {
+      res.continue = false
+      return wf.httpUtil.dataError(req, res, "Error", 'Authenticity is false', 500, "1.0");
+    }
   }
 
   /**

@@ -30,30 +30,47 @@ function workPOW(conf)
   */
   function calcHash(_str, _difficulty)
   {
-    var DONE = false;
-    var _dic = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    var _junk = "";
-    var result = {seal: "", junk:""};
+    let DONE = false;
+    let _dic = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let _junk = "";
+    let result = { seal: "", junk:"" };
+    
+    _difficulty = 14 - BLOCK_DIFFICULTY
 
-    while(false) // remplace par DONE
+    let step = 0
+    
+    const truncatedDic = _dic.substring(0, _difficulty)
+    const junkLength = 10
+
+    while(!DONE)
     {
-      /*
-        TODO :
-        _difficulty = 15 - BLOCK_DIFFICULTY
+      for (let i = 0; i < junkLength; i++) {
+        const rd = Math.floor(Math.random() * _dic.length)
+        const newChar = _dic.charAt(rd)
+        _junk = `${_junk}${newChar}`
+      }
+      const concat = `${_str}${_junk}` 
+      const hash = wf.Crypto.createSHA256(concat)
 
-        Créer un junk random
-        Utiliser les fonctions js string.charAt(index), Math.floor(integer) et wf.Crypto.createSHA256(string)
-        Utiliser les boucles for(var i = 0; i  < integer; i++)
-        Tester que chaque caractère du hash est suppérieur à _difficulty
-        ex: si BLOCK_DIFFICULTY = 1 alors _difficulty = 14, donc si un caractère est  > 14, cad > e, donc == f, il n'est pas correct
+      let ok = true
+      for(var c in hash)
+      {
+        const value = parseInt(hash[c], 16);
+        if(value > _difficulty)
+        {
+          ok = false
+          break
+        }
+      }
 
-        la fonction doit retourner un object comme : var _result = { seal: "string", junk: "string"};
-
-      */
-
+      if (ok) {
+        result.junk = _junk
+        result.seal = hash
+        DONE = true
+      }
     }
 
-
+    return result
   }
 
   /**
