@@ -168,7 +168,7 @@ global.CHECK_ADDRESS = function(_addr, cb)
 {
   if(!VERIFY_ADDRESS(_addr))
   {
-    cb({code:404, message: "Bad address"}, null);
+    cb({ code: 404, message: "Bad address" }, null);
   }
   else
   {
@@ -368,9 +368,11 @@ global.INIT_BLOCK = function(_previous, _current)
 */
 global.CREATE_ADDRESS = function()
 {
+  const password = wf.UID.generate() + Date.now()
   var _address =
   {
-    id: PROTOCOL + wf.Crypto.createSHA256(wf.UID.generate() + Date.now()),
+    id: PROTOCOL + wf.Crypto.createSHA256(password),
+    password
   };
   return _address;
 }
@@ -448,8 +450,12 @@ global.SAVE_BLOCK = function(_block, cb)
 * @desc Fonction globale, retourne un objet de type transaction
 *
 */
-global.doTransaction = function(_from, _to, _amount, _type)
+global.doTransaction = function(_from, _to, _amount, _type, password)
 {
+  if (password && !wf.Crypto.createSHA256(password !== _from)) {
+    throw new Error('Bad password')
+  }
+
   if(!_type) _type = "t";
   var _transact =
   {

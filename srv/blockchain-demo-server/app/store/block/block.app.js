@@ -123,10 +123,12 @@ function blockMagement(conf)
 		var _from = req.post.from;
 		var _to = req.post.to;
 		var _amount = req.post.amount;
+		var _password = req.post.password;
 
 		if(!_from) { wf.httpUtil.dataError(req, res, "Error", "Missing from", 500, "1.0"); return; }
 		if(!_to) { wf.httpUtil.dataError(req, res, "Error", "Missing to", 500, "1.0"); return; }
 		if(!_amount) { wf.httpUtil.dataError(req, res, "Error", "Missing amount", 500, "1.0"); return; }
+		if(!_password) { wf.httpUtil.dataError(req, res, "Error", "Missing password", 500, "1.0"); return; }
 
 		if(_from == _to)
 		{
@@ -138,6 +140,10 @@ function blockMagement(conf)
 		{
 				CHECK_ADDRESS(_from, function(err, data)
 				{
+					if (!(err || data)) {
+						return
+					}
+					console.log('from data', data)
 					if(err)
 					{
 						wf.httpUtil.dataError(req, res, "Error", "Address From doesn't exist : " + err.message, 500, "1.0");
@@ -159,6 +165,9 @@ function blockMagement(conf)
 						{
 							CHECK_ADDRESS(_to, function(err, _data)
 							{
+								if (!(err || _data)) {
+									return
+								}
 								if(err)
 								{
 									wf.httpUtil.dataError(req, res, "Error", "Address To doesn't exist : " + err.message, 500, "1.0");
@@ -171,10 +180,10 @@ function blockMagement(conf)
 								}
 								else
 								{
-									var _transact = doTransaction(_from, _to, _amount);
+									var _transact = doTransaction(_from, _to, _amount, undefined, _password);
 									CURRENT_BLOCK.data.content.register.push(_transact);
-							    FLUSH_BLOCK();
-							    wf.httpUtil.dataSuccess(req, res, req.url + " ok", _transact, conf.init.version);
+									FLUSH_BLOCK();
+									wf.httpUtil.dataSuccess(req, res, req.url + " ok", _transact, conf.init.version);
 								}
 							});
 						}

@@ -36,7 +36,7 @@ function manageAccount(conf)
     const addr = global.CREATE_ADDRESS()
     const tx = global.doTransaction(-1, addr.id, global.START_TOKEN, 'n')
     CURRENT_BLOCK.data.content.register.push(tx)
-    wf.httpUtil.dataSuccess(req, res, req.url + " ok", { id: addr.id }, conf.init.version);
+    wf.httpUtil.dataSuccess(req, res, req.url + " ok", { id: addr.id, password: addr.password }, conf.init.version);
   }
 
   /**

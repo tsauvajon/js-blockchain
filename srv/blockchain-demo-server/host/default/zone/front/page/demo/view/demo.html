@@ -28,7 +28,8 @@ Amount :<input id="inject">
 
 From : <input id="from">
 To : <input id="to">
-Amount :<input id="amount">
+Amount : <input id="amount">
+Password : <input id="password">
 <button onclick="doTransaction();">Send now</button>
 <textarea id="result"></textarea>
 
@@ -85,6 +86,7 @@ function doTransaction()
 	{
 		from: document.getElementById("from").value,
 		to: document.getElementById("to").value,
+		password: document.getElementById("password").value,
 		amount: parseInt(document.getElementById("amount").value)
 	};
 	AJAX.POST(document.getElementById("url").value + "/block/add", JSON.stringify(data), function(err, data)
