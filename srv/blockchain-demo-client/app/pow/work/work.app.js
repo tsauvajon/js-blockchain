@@ -33,9 +33,9 @@ function workPOW(conf)
     let DONE = false;
     let _dic = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     let _junk = "";
-    let result = { seal: "", junk:"" };
+    let result = { seal: "", junk: "" };
     
-    _difficulty = 14 - BLOCK_DIFFICULTY
+    _difficulty = 15 - global.BLOCK_DIFFICULTY
 
     let step = 0
     
