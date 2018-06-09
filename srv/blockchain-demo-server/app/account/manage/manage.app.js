@@ -37,18 +37,6 @@ function manageAccount(conf)
     const tx = global.doTransaction(-1, addr.id, global.START_TOKEN, 'n')
     CURRENT_BLOCK.data.content.register.push(tx)
     wf.httpUtil.dataSuccess(req, res, req.url + " ok", { id: addr.id }, conf.init.version);
-
-    /*
-      TODO :
-      utiliser la fonction CREATE_ADDRESS() pour générer une address
-      utiliser doTransaction(-1, account id, "n") pour générer une transaction de type nouvelle adresse
-      pousser la transaction dans CURRENT_BLOCK.data.content.regiser avec la fonction push
-      réponder à la requète l'adresse avec la fonction :
-      wf.httpUtil.dataSuccess(req, res, req.url + " ok", {id: "id de l'adresse"}, conf.init.version);
-      cette fonction est une procédure qui ne retourne rien
-    */
-
-
   }
 
   /**
@@ -65,18 +53,24 @@ function manageAccount(conf)
 
   this.getBalance = function(req, res)
   {
-    /*
-      TODO :
-      vérifier que req.param.target est présent, sinon envoyer une erreur avec la fonction :
-        wf.httpUtil.dataError(req, res, "Error", "MESSAGE DE L'ERREUR", 500, "1.0");
+    if (!req.param.target) {
+      return wf.httpUtil.dataError(req, res, 'Error', 'req.param.target is required', 500, '1.0')
+    }
 
-      si req.param.target est présent, vérifier que c'est une adresse valide avec CHECK_ADDRESS
+    if (!global.VERIFY_ADDRESS(req.param.target)) {
+      return wf.httpUtil.dataError(req, res, 'Error', 'req.param.target is not a valid address', 500, '1.0')
+    }
 
-      s'il y a une erreur ou que l'adresse n'existe pas, renvoyer une erreur avec wf.httpUtil.dataError
-      sinon, renvoyer le résulte _data du callback de CHECK_ADDRESS avec :
-        wf.httpUtil.dataSuccess(req, res, req.url + " ok", _data, conf.init.version);
-    */
+    let result
 
+    global.CHECK_ADDRESS(req.param.target, (err, ok) => {
+      if (err) {
+        result = wf.httpUtil.dataError(req, res, 'Error', err, 500, '1.0')
+      }
+      result = wf.httpUtil.dataSuccess(req, res, req.url + " ok", _data, conf.init.version)
+    })
+
+    return result
   }
 
   var route = "/account/:action?/:target?";
