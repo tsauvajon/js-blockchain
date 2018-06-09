@@ -1,0 +1,10 @@
+{
+  "name": "binex-masterclass",
+  "version": "1.0.0",
+  "description": "JavaScript blockchain",
+  "main": "index.js",
+  "repository": "https://github.com/tsauvajon/js-blockchain",
+  "author": "Thomas Sauvajon <thomas.sauvajon.dev@gmail.com>",
+  "license": "MIT",
+  "private": false
+}

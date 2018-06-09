@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: blockchain-demo-server/app/store/block/block.app.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: blockchain-demo-server/app/store/block/block.app.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+* @module STORE/BLOCK
+*/
+
+var wf = WF();
+
+/**
+*
+* @function blockMagement
+* @desc Prototype principal de l'app block
+*
+*/
+function blockMagement(conf)
+{
+	var route = "/block/:action?/:target?";
+	var router = function(req, res)
+	{
+			switch(req.param.action)
+			{
+				case "get":
+					getBlock(req, res);
+				break;
+				case "add":
+					addTransactionToBlock(req, res);
+				break;
+				case "inject":
+					injectToken(req, res);
+				break;
+				case "list":
+				default:
+					wf.httpUtil.dataSuccess(req, res, req.url + " ok", ["get", "add", "list"], conf.init.version);
+				break;
+			}
+	}
+
+	wf.Router.ANY("*", route, router);
+
+	/**
+  *
+  * @function getBlock
+  * @param {object} req request parametre
+  * @param {object} res response parametre
+  * @desc Répond en API REST le contenu d'un block en fonction de l'id passée en url dans le champs target : /block/get/1
+  *
+  */
+	function getBlock(req, res)
+	{
+		var _id;
+		if(req.param.target == undefined) _id = CURRENT_CONF.current;
+		else _id = parseInt(req.param.target);
+		if(CURRENT_BLOCK &amp;&amp; CURRENT_BLOCK.loaded &amp;&amp; _id == CURRENT_BLOCK.data.content.current)
+		{
+			wf.httpUtil.dataSuccess(req, res, req.url + " ok", CURRENT_BLOCK.data, conf.init.version);
+			return;
+		};
+		var _block = path.join(BLOCK_STORE, _id + BLOCK_END);
+		fs.readFile(_block, "utf8", function(err, data)
+		{
+			if(err)
+			{
+				wf.httpUtil.dataError(req, res, "Error", err.message, 500, "1.0");
+			}
+			else
+			{
+				try
+				{
+					data = JSON.parse(data);
+					wf.httpUtil.dataSuccess(req, res, req.url + " ok", data, conf.init.version);
+				}
+				catch(e)
+				{
+					wf.httpUtil.dataError(req, res, "Error", "Unexpected error", 500, "1.0");
+				}
+			}
+		});
+	}
+
+	/**
+  *
+  * @function injectToken
+  * @param {object} req request parametre
+  * @param {object} res response parametre
+  * @desc Injecte des tokens dans la blockchain en fonction de la quantité passée en url dans le champs target : /block/inject/100
+  *
+  */
+	function injectToken(req, res)
+	{
+		if(!req.param.target)
+		{
+			wf.httpUtil.dataError(req, res, "Error", "Missing amount", 500, "1.0");
+			return;
+		}
+		else
+		{
+			var amount = parseInt(req.param.target);
+			if(amount > 0)
+			{
+				var _transact = doTransaction(-1, INIT_ADDRESS, amount);
+				CURRENT_BLOCK.data.content.register.push(_transact);
+				FLUSH_BLOCK();
+				wf.httpUtil.dataSuccess(req, res, req.url + " ok", _transact, conf.init.version);
+			}
+			else
+			{
+				wf.httpUtil.dataError(req, res, "Error", "Bad amount", 500, "1.0");
+				return;
+			}
+
+		}
+	}
+
+	/**
+  *
+  * @function addTransactionToBlock
+  * @param {object} req request parametre
+  * @param {object} res response parametre
+  * @desc Génère une transaction avec les arguments passés en POST : {from, to, amount}
+  *
+  */
+	function addTransactionToBlock(req, res)
+	{
+		NEXT_BLOCK();
+		var _from = req.post.from;
+		var _to = req.post.to;
+		var _amount = req.post.amount;
+
+		if(!_from) { wf.httpUtil.dataError(req, res, "Error", "Missing from", 500, "1.0"); return; }
+		if(!_to) { wf.httpUtil.dataError(req, res, "Error", "Missing to", 500, "1.0"); return; }
+		if(!_amount) { wf.httpUtil.dataError(req, res, "Error", "Missing amount", 500, "1.0"); return; }
+
+		if(_from == _to)
+		{
+			wf.httpUtil.dataError(req, res, "Error", "Can't send token to the same address", 500, "1.0");
+			return;
+		}
+
+		try
+		{
+				CHECK_ADDRESS(_from, function(err, data)
+				{
+					if(err)
+					{
+						wf.httpUtil.dataError(req, res, "Error", "Address From doesn't exist : " + err.message, 500, "1.0");
+						return;
+					}
+					else
+					{
+						if(!data.exists)
+						{
+							wf.httpUtil.dataError(req, res, "Error", "Address From doesn't exist", 500, "1.0");
+							return;
+						}
+						else if(data.balance &lt; _amount)
+						{
+							wf.httpUtil.dataError(req, res, "Error", "Balance &lt; amount", 500, "1.0");
+							return;
+						}
+						else
+						{
+							CHECK_ADDRESS(_to, function(err, _data)
+							{
+								if(err)
+								{
+									wf.httpUtil.dataError(req, res, "Error", "Address To doesn't exist : " + err.message, 500, "1.0");
+									return;
+								}
+								else if(!_data.exists)
+								{
+									wf.httpUtil.dataError(req, res, "Error", "Address To doesn't exist", 500, "1.0");
+									return;
+								}
+								else
+								{
+									var _transact = doTransaction(_from, _to, _amount);
+									CURRENT_BLOCK.data.content.register.push(_transact);
+							    FLUSH_BLOCK();
+							    wf.httpUtil.dataSuccess(req, res, req.url + " ok", _transact, conf.init.version);
+								}
+							});
+						}
+					}
+				});
+		}
+		catch(e){console.log(e)}
+	}
+
+}
+module.exports = blockMagement;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-ACCOUNT_MANAGE.html">ACCOUNT/MANAGE</a></li><li><a href="module-INIT_START.html">INIT/START</a></li><li><a href="module-POW_WORK.html">POW/WORK</a></li><li><a href="module-SEAL_CHECK.html">SEAL/CHECK</a></li><li><a href="module-SEAL_SIGN.html">SEAL/SIGN</a></li><li><a href="module-STORE_BLOCK.html">STORE/BLOCK</a></li></ul><h3>Namespaces</h3><ul><li><a href="ETAPE1.html">ETAPE1</a></li><li><a href="ETAPE2.html">ETAPE2</a></li><li><a href="ETAPE3.html">ETAPE3</a></li><li><a href="ETAPE4.html">ETAPE4</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sat Jun 09 2018 02:51:40 GMT+0200 (CEST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

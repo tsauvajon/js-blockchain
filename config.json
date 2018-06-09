@@ -1,0 +1,21 @@
+{
+      "global":
+      {
+        "SRV_PATH":"__MAIN_PATH__srv/",
+        "TEST_PATH":"__MAIN_PATH__srv/",
+        "BLOCKCHAIN_STORE": "__MAIN_PATH__",
+        "MINING_REWARD": true,
+        "REWARD_AMOUNT": 50,
+        "DEBUG": true,
+        "THROW_ERROR": true,
+        "START_TOKEN": 100000,
+        "MAX_TRANSACTION": 32,
+        "PROTOCOL": "Bx",
+        "INIT_ADDRESS": "Bx0000000000000000000000000000000000000000000000000000000000000000",
+        "FLUSH_TIME": 60000,
+        "CHECK_TIME": 45000,
+        "BLOCK_DIFFICULTY": 1,
+        "CHANGE_ID": false,
+        "MY_ADDRESS": "Bx0000000000000000000000000000000000000000000000000000000000000000"
+      }
+}

@@ -1,0 +1,146 @@
+<html>
+<head>
+	<title>Blockchain demo</title>
+	<script src="/ajax.js"></script>
+</head>
+
+<body>
+Init address : <span style="color:blue;">__INIT__</span> -
+
+Current block : <span style="color:red;">__CURRENT__</span> -
+
+Server URL : <input id="url" value="http://localhost:9292" style="color:orange;">
+
+<br><hr>
+<h2>Inject token</h2>
+Amount :<input id="inject">
+<button onclick="injectToken();">Inject</button>
+<textarea id="token"></textarea>
+
+<br><hr>
+<h2>Create an address</h2>
+<button onclick="createAddress();">New address</button>
+<textarea id="new"></textarea>
+
+<br><hr>
+
+<h2>Transaction</h2>
+
+From : <input id="from">
+To : <input id="to">
+Amount :<input id="amount">
+<button onclick="doTransaction();">Send now</button>
+<textarea id="result"></textarea>
+
+<br><hr>
+
+<h2>Balance</h2>
+Address : <input id="address">
+<button onclick="getBalance();">Check now</button>
+<input type="text" readonly id="balance">
+
+<br><hr>
+
+<h2>Block</h2>
+
+ID : <input id="id">
+<button onclick="getBlock();">See block</button>
+<textarea id="block"></textarea>
+
+<script>
+
+function injectToken()
+{
+	AJAX.GET(document.getElementById("url").value + "/block/inject/" + document.getElementById("inject").value, null, function(err, data)
+	{
+		if(err)
+		{
+			document.getElementById("token").value = err;
+		}
+		else
+		{
+			document.getElementById("token").value = data;
+		}
+	});
+}
+
+function createAddress()
+{
+	AJAX.GET(document.getElementById("url").value + "/account/create", null, function(err, data)
+	{
+		if(err)
+		{
+			document.getElementById("new").value = err;
+		}
+		else
+		{
+			document.getElementById("new").value = data;
+		}
+	});
+}
+
+function doTransaction()
+{
+	var data =
+	{
+		from: document.getElementById("from").value,
+		to: document.getElementById("to").value,
+		amount: parseInt(document.getElementById("amount").value)
+	};
+	AJAX.POST(document.getElementById("url").value + "/block/add", JSON.stringify(data), function(err, data)
+	{
+		if(err)
+		{
+			document.getElementById("result").value = err;
+		}
+		else
+		{
+			document.getElementById("result").value = data;
+		}
+	});
+}
+
+function getBalance()
+{
+	AJAX.GET(document.getElementById("url").value + "/account/balance/" + document.getElementById("address").value, null, function(err, data)
+	{
+		if(err)
+		{
+			document.getElementById("balance").value = err;
+		}
+		else
+		{
+			document.getElementById("balance").value = JSON.parse(data).data.balance;
+		}
+	});
+}
+
+function getBlock()
+{
+	AJAX.GET(document.getElementById("url").value + "/block/get/" + document.getElementById("id").value, null, function(err, data)
+	{
+		if(err)
+		{
+			document.getElementById("block").value = err;
+		}
+		else
+		{
+			document.getElementById("block").value = data;
+		}
+	});
+}
+
+</script>
+
+<style>
+
+textarea
+{
+	width:600px;
+	height:100px;
+}
+
+</style>
+
+</body>
+</html>
